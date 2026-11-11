@@ -2,6 +2,10 @@
 
 **Deixe a IA trabalhar no seu WhatsApp sem entregar a sua vida pessoal para ela.**
 
+[![Download](https://img.shields.io/badge/Download-Windows-0078D6?logo=windows)](https://github.com/jonnysundae/whatsapp-guard-mcp/releases/latest)
+[![MCP](https://img.shields.io/badge/MCP-compatível-6E56CF)](https://modelcontextprotocol.io/)
+[![Feito com IA](https://img.shields.io/badge/Feito%20com-Google%20Antigravity-4285F4?logo=google)](#-desenvolvido-com-ia)
+
 ## 😩 O problema
 
 Hoje boa parte do trabalho acontece no WhatsApp: clientes, fornecedores, grupos de equipe, orçamentos, follow-ups. Mas o WhatsApp é **um só** para tudo, e nele também estão a família, os amigos, o médico, as conversas íntimas.
@@ -33,8 +37,55 @@ O **Guardião WhatsApp** é um "porteiro" entre o seu WhatsApp e qualquer IA com
 
 ---
 
+## 🚀 Guia de início rápido (5 minutos)
+
+> Para quem quer só baixar e usar. Não precisa saber programar.
+
+**1. Baixe e instale**
+- Vá em [**Releases**](https://github.com/jonnysundae/whatsapp-guard-mcp/releases/latest) e baixe o `Guardiao-WhatsApp-Setup.exe`.
+- Dê dois cliques. Ele instala sozinho, sem pedir senha de administrador, e cria o atalho **Guardião WhatsApp** na Área de Trabalho.
+- Se o Windows mostrar *"O Windows protegeu o computador"*, clique em **Mais informações → Executar assim mesmo**. O aviso aparece porque o instalador não tem assinatura digital paga.
+
+**2. Conecte o WhatsApp**
+- No app, clique em **Conectar via QR Code**.
+- No celular, abra o WhatsApp → **⋮ / Configurações → Aparelhos conectados → Conectar um aparelho** e leia o QR Code.
+
+**3. Diga o que é trabalho**
+- Na aba **Conversas**, ligue os grupos de trabalho.
+- Para contatos, adicione uma tag (ex.: `[EMP]`). Todo contato com essa tag no nome, ou com uma etiqueta do WhatsApp Business de mesmo nome, é liberado automaticamente.
+
+**4. Conecte a sua IA**
+- Na aba **IAs e Ajustes**, ligue a chave da sua IA (Claude, Antigravity, Gemini, Cursor…) ou clique em **Conectar em todas**.
+- Feche e abra de novo o programa da IA (o botão **Reiniciar app** faz isso por você).
+
+**5. Pronto! Teste perguntando para a IA:**
+
+```text
+Use o whatsapp-guard e me faça um resumo das conversas de trabalho de hoje.
+```
+
+> [!TIP]
+> Deixe o Guardião **aberto** enquanto usa a IA. Fechou a janela, o acesso é cortado na hora.
+
+<details>
+<summary><b>Prefere rodar a partir do código-fonte?</b></summary>
+
+Requer Node.js 22.5+.
+
+```bash
+git clone https://github.com/jonnysundae/whatsapp-guard-mcp.git
+cd whatsapp-guard-mcp
+npm install
+npm start
+```
+
+</details>
+
+---
+
 ## Sumário
 
+- [Guia de início rápido](#-guia-de-início-rápido-5-minutos)
 - [Principais recursos](#principais-recursos)
 - [Como funciona (arquitetura)](#como-funciona-arquitetura)
 - [Modelo de privacidade](#modelo-de-privacidade)
@@ -46,6 +97,7 @@ O **Guardião WhatsApp** é um "porteiro" entre o seu WhatsApp e qualquer IA com
 - [Estrutura do código](#estrutura-do-código)
 - [Detalhes técnicos importantes](#detalhes-técnicos-importantes)
 - [Bibliotecas e projetos de terceiros](#bibliotecas-e-projetos-de-terceiros)
+- [Desenvolvido com IA](#-desenvolvido-com-ia)
 
 ---
 
@@ -300,8 +352,17 @@ Este projeto foi construído sobre software open source pronto. Créditos e agra
 | [cloudflared](https://github.com/cloudflare/cloudflared) | Túnel HTTPS opcional (baixado sob demanda, não incluído no repositório) | Apache-2.0 |
 | `node:sqlite` (Node.js) | Banco de dados local embutido | MIT (Node.js) |
 | [whatsmeow](https://github.com/tulir/whatsmeow) | Referência de comportamento para o LTHash tolerante (nenhum código copiado) | MPL-2.0 |
+---
 
-O desenvolvimento contou com ajuda de assistentes de IA para programar.
+## 🤖 Desenvolvido com IA
+
+Este projeto foi **idealizado por [@jonnysundae](https://github.com/jonnysundae) e desenvolvido em parceria com IA**, do primeiro arquivo ao instalador:
+
+- **[Google Antigravity](https://antigravity.google/)**, a plataforma de desenvolvimento com agentes de IA do Google DeepMind, foi a parceira de programação. Os agentes escreveram e revisaram o código, desenharam a arquitetura, investigaram bugs nos logs (como as quedas de conexão a cada ~50 min e a falha de LTHash na agenda), testaram, geraram o instalador e escreveram esta documentação.
+- **Modelos usados pelos agentes:** Google **Gemini** e Anthropic **Claude**.
+- **O papel humano:** definir o produto, as regras de privacidade e a experiência, testar no WhatsApp real e aprovar cada etapa.
+
+> É um exemplo prático de como uma pessoa com uma boa ideia e um agente de IA conseguem tirar do papel um produto desktop completo.
 
 ---
 
