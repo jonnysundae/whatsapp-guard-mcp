@@ -76,6 +76,12 @@
 
       <!-- RODAPÉ DE CONEXÃO WHATSAPP -->
       <div class="sidebar-footer">
+        <div id="updaterBanner" class="updater-banner hidden">
+          <div class="updater-banner-text" id="updaterBannerText"></div>
+          <button class="btn-primary btn-xs hidden" id="btnUpdaterInstall" onclick="installAppUpdate()">
+            Reiniciar e atualizar
+          </button>
+        </div>
         <div class="wa-mini-card">
           <div class="wa-mini-info">
             <span class="status-dot disconnected" id="waDot"></span>
@@ -401,8 +407,13 @@
 
         <div class="sub-header sub-header-flex">
           <h2>Últimos acessos da IA</h2>
-          <button class="btn-ghost btn-xs" onclick="openLogFile()">Abrir log de diagnóstico</button>
+          <div class="header-actions-inline">
+            <span id="appVersionBadge" class="version-pill"></span>
+            <button class="btn-ghost btn-xs" id="btnCheckUpdate" onclick="checkAppUpdate()">Buscar atualização</button>
+            <button class="btn-ghost btn-xs" onclick="openLogFile()">Abrir log de diagnóstico</button>
+          </div>
         </div>
+        <div id="updaterStatusNote" class="updater-status-note hidden"></div>
         <div id="cleanAuditList" class="clean-audit"></div>
       </section>
 

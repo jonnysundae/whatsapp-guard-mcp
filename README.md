@@ -42,8 +42,8 @@ O **Guardião WhatsApp** é um "porteiro" entre o seu WhatsApp e qualquer IA com
 > Para quem quer só baixar e usar. Não precisa saber programar.
 
 **1. Baixe e instale**
-- Vá em [**Releases**](https://github.com/jonnysundae/whatsapp-guard-mcp/releases/latest) e baixe o `Guardiao-WhatsApp-Setup.exe`.
-- Dê dois cliques. Ele instala sozinho, sem pedir senha de administrador, e cria o atalho **Guardião WhatsApp** na Área de Trabalho.
+- Vá em [**Releases**](https://github.com/jonnysundae/whatsapp-guard-mcp/releases/latest) e baixe o arquivo `Guardiao-WhatsApp-Setup-….exe`.
+- Dê dois cliques. Ele instala sozinho, sem pedir senha de administrador, cria o atalho **Guardião WhatsApp** na Área de Trabalho e **passa a se atualizar sozinho** nas versões seguintes.
 - Se o Windows mostrar *"O Windows protegeu o computador"*, clique em **Mais informações → Executar assim mesmo**. O aviso aparece porque o instalador não tem assinatura digital paga.
 
 **2. Conecte o WhatsApp**
@@ -115,6 +115,7 @@ npm start
 - **Instalação em 1 clique nos clientes de IA:** o app detecta os programas instalados e grava a configuração MCP de cada um.
 - **IAs no navegador** (SuperGrok, Grok Bot, Gemini Web, ChatGPT…) por meio de um endpoint MCP HTTP com token, publicado opcionalmente por um túnel Cloudflare.
 - **Só funciona com a janela aberta:** ao fechar o app, o servidor local desliga e a IA recebe "programa fechado".
+- **Atualização automática:** a partir da `v1.1.0`, o app verifica novas versões no GitHub Releases em segundo plano, avisa na barra lateral e só reinicia quando não houver nenhuma mensagem sendo digitada.
 - **Log de auditoria** de tudo que a IA consultou, enviou ou teve bloqueado.
 
 ---
@@ -266,6 +267,7 @@ npm install
 
 npm start          # abre o app em modo desenvolvimento (Electron)
 npm run build      # gera o instalador em dist/ (electron-builder, NSIS)
+npm run release    # gera o build e publica um novo Release no GitHub (requer gh CLI)
 npm run mcp        # roda só a ponte MCP stdio (para testes)
 ```
 
@@ -297,12 +299,14 @@ Conteúdo: `wa_auth/` (sessão do WhatsApp; **equivale a estar logado: nunca com
 
 ```
 ├── build/icon.png              # ícone do instalador
+├── scripts/release.mjs         # build + publicação automatizada no GitHub Releases
 ├── public/                     # interface da janela (HTML/CSS/JS puro, sem framework)
 │   ├── index.html
 │   ├── app.js
 │   └── styles.css
 └── src/
-    ├── electron-main.js        # processo principal do Electron
+    ├── electron-main.js        # processo principal do Electron + auto-updater
+    ├── preload.cjs             # ponte IPC isolada para o atualizador automático
     ├── main-server.js          # servidor HTTP local + roteamento das ferramentas MCP
     ├── whatsapp-service.js     # conexão Baileys, filtros, fila anti-ban, agenda/etiquetas (AppState)
     ├── db.js                   # SQLite (node:sqlite): esquema, regras de autorização, filas
@@ -346,6 +350,7 @@ Este projeto foi construído sobre software open source pronto. Créditos e agra
 | [Model Context Protocol TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Servidores MCP stdio, Streamable HTTP e SSE | MIT |
 | [Electron](https://www.electronjs.org/) | App desktop | MIT |
 | [electron-builder](https://www.electron.build/) | Geração do instalador Windows (NSIS) | MIT |
+| [electron-updater](https://www.electron.build/auto-update) | Atualização automática via GitHub Releases | MIT |
 | [Zod](https://zod.dev/) | Validação dos parâmetros das ferramentas MCP | MIT |
 | [node-qrcode](https://github.com/soldair/node-qrcode) | Geração do QR Code de pareamento | MIT |
 | [Pino](https://getpino.io/) | Logger exigido pelo Baileys (silenciado) | MIT |

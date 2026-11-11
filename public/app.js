@@ -1141,5 +1141,90 @@ async function openLogFile() {
   await api('/api/logs/open', 'POST', {});
 }
 
+// ---------------------------------------------------------------------------
+// Atualização automática (ponte segura via preload.cjs)
+// ---------------------------------------------------------------------------
+let lastUpdaterState = null;
+
+function renderUpdaterUI(state) {
+  lastUpdaterState = state || null;
+  const banner = document.getElementById('updaterBanner');
+  const bannerText = document.getElementById('updaterBannerText');
+  const btnInstall = document.getElementById('btnUpdaterInstall');
+  const versionBadge = document.getElementById('appVersionBadge');
+  const statusNote = document.getElementById('updaterStatusNote');
+
+  if (versionBadge && state?.currentVersion) {
+    versionBadge.textContent = `v${state.currentVersion}`;
+  }
+
+  if (!banner || !bannerText || !btnInstall) return;
+
+  if (!state || state.status === 'idle' || state.status === 'up-to-date' || state.status === 'checking' || state.status === 'dev') {
+    banner.classList.add('hidden');
+    btnInstall.classList.add('hidden');
+  } else if (state.status === 'downloading') {
+    banner.classList.remove('hidden');
+    banner.classList.add('is-downloading');
+    btnInstall.classList.add('hidden');
+    const verLabel = state.version ? ` v${state.version}` : '';
+    bannerText.textContent = `Baixando atualização${verLabel}... ${state.percent || 0}%`;
+  } else if (state.status === 'downloaded') {
+    banner.classList.remove('hidden', 'is-downloading');
+    btnInstall.classList.remove('hidden');
+    const verLabel = state.version ? ` v${state.version}` : '';
+    bannerText.textContent = `Nova versão${verLabel} pronta!`;
+  } else if (state.status === 'installing') {
+    banner.classList.remove('hidden');
+    banner.classList.add('is-downloading');
+    btnInstall.classList.add('hidden');
+    bannerText.textContent = 'Aguardando envios e instalando atualização...';
+  } else if (state.status === 'error') {
+    banner.classList.add('hidden');
+    btnInstall.classList.add('hidden');
+  }
+
+  if (statusNote) {
+    if (state?.status === 'checking') {
+      statusNote.textContent = 'Verificando se há nova versão no GitHub...';
+      statusNote.classList.remove('hidden');
+    } else if (state?.status === 'up-to-date') {
+      statusNote.textContent = `Você já está na versão mais recente (v${state.currentVersion}).`;
+      statusNote.classList.remove('hidden');
+    } else if (state?.status === 'downloaded') {
+      statusNote.textContent = `Atualização v${state.version || ''} baixada. Clique em "Reiniciar e atualizar" ou feche o app para aplicar.`;
+      statusNote.classList.remove('hidden');
+    } else if (state?.status === 'error') {
+      statusNote.textContent = `Não foi possível verificar atualização agora.`;
+      statusNote.classList.remove('hidden');
+    } else if (state?.status === 'dev') {
+      statusNote.textContent = 'Modo desenvolvimento (auto-update ativo apenas no app instalado).';
+      statusNote.classList.remove('hidden');
+    } else {
+      statusNote.classList.add('hidden');
+    }
+  }
+}
+
+async function installAppUpdate() {
+  if (!window.guardiaoUpdater?.installNow) return;
+  await window.guardiaoUpdater.installNow();
+}
+
+async function checkAppUpdate() {
+  if (!window.guardiaoUpdater?.checkNow) return;
+  const note = document.getElementById('updaterStatusNote');
+  if (note) {
+    note.textContent = 'Verificando se há nova versão no GitHub...';
+    note.classList.remove('hidden');
+  }
+  const st = await window.guardiaoUpdater.checkNow();
+  if (st) renderUpdaterUI(st);
+}
+
+if (window.guardiaoUpdater?.onState) {
+  window.guardiaoUpdater.onState(renderUpdaterUI);
+}
+
 refreshState();
 setInterval(refreshState, 1500);

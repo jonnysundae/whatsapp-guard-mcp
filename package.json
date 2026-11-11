@@ -1,19 +1,27 @@
 {
   "name": "guardiao-whatsapp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Guardião WhatsApp — Privacidade e controle para IA",
-  "author": "Equipe Interna",
+  "author": "jonnysundae",
   "type": "module",
   "main": "src/electron-main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win",
+    "release": "node scripts/release.mjs",
     "mcp": "node src/mcp-bridge.js"
   },
   "build": {
     "appId": "com.guardiao.whatsapp.mcp",
     "productName": "Guardiao WhatsApp",
     "asar": false,
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "jonnysundae",
+        "repo": "whatsapp-guard-mcp"
+      }
+    ],
     "files": [
       "src/**/*",
       "public/**/*",
@@ -28,6 +36,7 @@
     "nsis": {
       "oneClick": true,
       "perMachine": false,
+      "artifactName": "Guardiao-WhatsApp-Setup-${version}.${ext}",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Guardião WhatsApp"
@@ -36,6 +45,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.2",
     "@whiskeysockets/baileys": "^6.7.16",
+    "electron-updater": "^6.8.11",
     "pino": "^9.6.0",
     "qrcode": "^1.5.4",
     "zod": "^3.24.2"
