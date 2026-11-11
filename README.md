@@ -1,8 +1,32 @@
 # 🛡️ Guardião WhatsApp (WhatsApp Guard MCP)
 
-Aplicativo desktop para Windows que conecta **o seu WhatsApp** a assistentes de IA (Claude, Antigravity, Gemini, Grok, Codex, Cursor, VS Code/Copilot, Windsurf…) via **MCP (Model Context Protocol)**. Você decide o que a IA pode ver e o que ela pode enviar.
+**Deixe a IA trabalhar no seu WhatsApp sem entregar a sua vida pessoal para ela.**
 
-> A IA só enxerga as conversas que você liberou (grupos marcados, contatos com uma tag no nome ou com uma etiqueta do WhatsApp Business). Conversas privadas são descartadas na memória e **nunca chegam ao disco**.
+## 😩 O problema
+
+Hoje boa parte do trabalho acontece no WhatsApp: clientes, fornecedores, grupos de equipe, orçamentos, follow-ups. Mas o WhatsApp é **um só** para tudo, e nele também estão a família, os amigos, o médico, as conversas íntimas.
+
+Quem tenta usar uma IA (Claude, Gemini, Grok, ChatGPT…) para ajudar nesse trabalho cai num beco sem saída:
+
+- **Copiar e colar conversas à mão** na IA, todo dia. É lento, cansativo e a IA nunca tem o contexto completo.
+- **Ou conectar um "MCP de WhatsApp" comum**, que entrega **todas** as suas conversas para a IA ler e deixa ela mandar mensagem para qualquer pessoa, sem freio.
+- **Risco de banimento:** automações que disparam mensagens em sequência, rápido demais, fazem o WhatsApp bloquear o número.
+- **Zero controle:** você não sabe o que a IA leu, o que guardou nem o que vai enviar em seu nome.
+- **Contatos bagunçados:** dezenas de clientes novos que só aparecem como "+55 11 9…" e nunca chegam a ser salvos e organizados na agenda.
+
+## ✅ A solução
+
+O **Guardião WhatsApp** é um "porteiro" entre o seu WhatsApp e qualquer IA compatível com **MCP (Model Context Protocol)**. Você liga só o que é trabalho, e a IA passa a ler, resumir, responder e organizar **apenas isso**:
+
+- 🔒 **A IA só vê o que você liberou:** grupos marcados, contatos com uma tag no nome (ex.: `[EMP]`) ou com uma etiqueta do WhatsApp Business. O resto é descartado na memória e **nunca chega ao disco**.
+- ✋ **Nada sai sem o seu OK:** mensagens e contatos novos passam por uma fila de aprovação com 1 clique.
+- 🐢 **Ritmo de ser humano:** intervalo aleatório de 25–45 s entre envios, "digitando…" simulado e limite por hora, para reduzir o risco de bloqueio.
+- 👀 **Memória transparente:** você vê exatamente o que a IA enxerga e pode apagar o que quiser.
+- 📇 **Agenda organizada pela IA:** ela sugere nome e etiqueta para contatos não salvos, você aprova e o contato vai para o WhatsApp e para a agenda do celular.
+- 🔌 **1 clique para conectar** no Claude, Antigravity, Gemini, Grok, Codex, Cursor, VS Code/Copilot e Windsurf, e também em IAs no navegador (SuperGrok, Gemini Web…).
+- 🚪 **Fechou a janela, cortou o acesso:** com o app fechado, a IA não alcança nada.
+
+> **Resumo:** é a produtividade de ter a IA no seu WhatsApp de trabalho, com a privacidade de quem nunca deixou ela entrar no pessoal.
 
 > [!WARNING]
 > Projeto **não oficial**, sem nenhuma ligação com o WhatsApp/Meta. A conexão usa o protocolo do WhatsApp Web (multi-dispositivo) através da biblioteca open source [Baileys](https://github.com/WhiskeySockets/Baileys). O uso automatizado pode violar os Termos de Serviço do WhatsApp e levar a bloqueio do número. Use por sua conta e risco, com moderação e só em conversas suas.
