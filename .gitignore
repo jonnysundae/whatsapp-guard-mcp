@@ -1,0 +1,31 @@
+# Dependências e builds
+node_modules/
+dist/
+out/
+*.exe
+*.blockmap
+
+# Dados locais do usuário (NUNCA versionar: sessão do WhatsApp, banco e logs)
+wa_auth/
+auth_info*/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.log
+logs/
+.guardiao-whatsapp/
+GuardiaoWhatsApp/
+cloudflared*
+
+# Segredos / ambiente
+.env
+.env.*
+*.pem
+*.key
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

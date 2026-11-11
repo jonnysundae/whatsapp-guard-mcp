@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guardião WhatsApp</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <!-- BARRA DE TÍTULO NATIVA ARRASTÁVEL -->
+  <div class="window-titlebar">
+    <div class="titlebar-brand">
+      <svg class="brand-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+      <span>Guardião WhatsApp</span>
+    </div>
+    <div class="titlebar-status" id="topPrivacyNote">
+      Ativo apenas enquanto esta janela estiver aberta
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <!-- BARRA LATERAL LIMPA -->
+    <aside class="sidebar">
+      <!-- CHAVE GERAL TÁTIL -->
+      <div class="master-card" id="masterCard">
+        <div class="master-row">
+          <div>
+            <div class="master-label" id="masterTitle">Acesso da IA</div>
+            <div class="master-state" id="masterSub">Ativo</div>
+          </div>
+          <label class="ios-switch">
+            <input type="checkbox" id="chkMasterAI" checked onchange="toggleMasterAI(this.checked)" />
+            <span class="ios-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- NAVEGAÇÃO MINIMALISTA -->
+      <nav class="side-nav">
+        <button class="nav-item active" data-view="view-chats" onclick="switchView('view-chats')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span>Conversas</span>
+        </button>
+
+        <button class="nav-item" data-view="view-approvals" onclick="switchView('view-approvals')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          <span>Envios e Agenda</span>
+          <span class="nav-badge hidden" id="navPendingBadge">0</span>
+        </button>
+
+        <button class="nav-item" data-view="view-memory" onclick="switchView('view-memory')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <span>Memória da IA</span>
+        </button>
+
+        <button class="nav-item" data-view="view-connections" onclick="switchView('view-connections')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          <span>IAs e Ajustes</span>
+        </button>
+      </nav>
+
+      <!-- RODAPÉ DE CONEXÃO WHATSAPP -->
+      <div class="sidebar-footer">
+        <div class="wa-mini-card">
+          <div class="wa-mini-info">
+            <span class="status-dot disconnected" id="waDot"></span>
+            <div class="wa-mini-texts">
+              <strong id="waMiniTitle">Desconectado</strong>
+              <span id="waMiniSub">WhatsApp</span>
+            </div>
+          </div>
+          <button class="icon-btn hidden" id="btnSidebarDisconnect" onclick="disconnectWhatsApp(true)" title="Sair / Desconectar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
+    <main class="workspace">
+
+      <!-- TELA 1: CONVERSAS -->
+      <section id="view-chats" class="view active">
+        <!-- ESTADO: DESCONECTADO (ONBOARDING LIMPO) -->
+        <div id="onboardingBox" class="center-card-wrap">
+          <div class="onboarding-card">
+            <div class="onboarding-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="m9 12 2 2 4-4"/>
+              </svg>
+            </div>
+            <h2>Conecte seu WhatsApp com privacidade</h2>
+            <p>
+              Apenas os grupos de trabalho que você marcar e contatos com tag ficarão visíveis para a IA.
+              Suas conversas pessoais nunca são salvas.
+            </p>
+            <div id="waErrorAlert" class="error-inline hidden"></div>
+            <button class="btn-primary btn-large" onclick="connectWhatsApp(true)">
+              Conectar via QR Code
+            </button>
+            <button class="btn-link" onclick="activateDemoMode()">
+              Testar com conversas de exemplo
+            </button>
+          </div>
+        </div>
+
+        <!-- ESTADO: CONECTANDO / PAREANDO APÓS LER QR CODE -->
+        <div id="connectingBox" class="center-card-wrap hidden">
+          <div class="onboarding-card">
+            <div class="spinner-ring"></div>
+            <h2 id="connectingTitle">Conectando ao WhatsApp...</h2>
+            <p id="connectingDesc">
+              Mantenha o WhatsApp aberto no seu celular por alguns instantes enquanto concluímos a conexão segura.
+            </p>
+            <button class="btn-ghost btn-sm" onclick="disconnectWhatsApp(true)">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- ESTADO: LENDO QR CODE -->
+        <div id="qrBox" class="center-card-wrap hidden">
+          <div class="qr-clean-card">
+            <img id="qrImage" src="" alt="QR Code" />
+            <div class="qr-clean-text">
+              <h2>Escaneie o código</h2>
+              <ol>
+                <li>Abra o WhatsApp no seu celular</li>
+                <li>Toque em <strong>Dispositivos conectados</strong></li>
+                <li>Aponte a câmera para o código ao lado</li>
+              </ol>
+              <p class="subtle-note">Seu histórico antigo não será baixado.</p>
+              <button class="btn-ghost btn-sm" onclick="disconnectWhatsApp(true)">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESTADO: CONECTADO (LISTA LIMPA DE GRUPOS E CONTATOS) -->
+        <div id="connectedChatsBox" class="hidden">
+          <!-- AVISO CLARO QUANDO EM MODO DE EXEMPLO -->
+          <div id="demoBanner" class="demo-banner hidden">
+            <div>
+              <strong>Modo de exemplo ativo</strong>
+              <span>Estas conversas são fictícias apenas para você conhecer o programa.</span>
+            </div>
+            <div class="demo-banner-actions">
+              <button class="btn-primary btn-xs" onclick="connectWhatsApp(true)">Conectar meu WhatsApp</button>
+              <button class="btn-ghost btn-xs" onclick="disconnectWhatsApp(false)">Sair do modo teste</button>
+            </div>
+          </div>
+
+          <div class="view-header">
+            <div>
+              <h1>Conversas liberadas</h1>
+              <p>Escolha o que a IA pode acompanhar. Tudo o que estiver desligado é ignorado.</p>
+            </div>
+            <div class="header-actions-inline">
+              <button class="btn-ghost btn-sm btn-icon-inline" id="btnSyncContacts" onclick="syncContacts()" title="Sincronizar agenda salva e listas do WhatsApp">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                  <path d="M16 16h5v5"/>
+                </svg>
+                <span>Atualizar agenda</span>
+              </button>
+              <button class="btn-ghost btn-sm btn-icon-inline" id="btnPullAllHistory" onclick="pullHistory(null)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                  <path d="M12 7v5l4 2"/>
+                </svg>
+                <span>Puxar histórico antigo</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="historySyncBar" class="sync-notice hidden"></div>
+
+          <div class="toolbar-row">
+            <div class="segmented">
+              <button class="seg-btn active" id="segGroups" onclick="setChatFilterTab('groups')">Grupos</button>
+              <button class="seg-btn" id="segContacts" onclick="setChatFilterTab('contacts')">Contatos</button>
+            </div>
+
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+              </svg>
+              <input type="text" id="chatSearchInput" placeholder="Buscar conversa ou tag..." oninput="onChatSearchInput()" />
+            </div>
+          </div>
+
+          <!-- BARRA DISCRETA DE TAGS E LISTAS DO WHATSAPP -->
+          <div id="tagRuleBar" class="tag-bar">
+            <span class="tag-bar-label">Liberar automaticamente por tag ou lista:</span>
+            <div id="tagsChips" class="tags-chips"></div>
+            <div class="tag-add-inline">
+              <input type="text" id="newTagInput" placeholder="+ Nova tag" onkeydown="if(event.key==='Enter') addTag()" />
+              <button class="btn-ghost btn-xs" onclick="addTag()">Adicionar</button>
+            </div>
+          </div>
+
+          <div id="cleanChatList" class="clean-list"></div>
+        </div>
+      </section>
+
+      <!-- TELA 2: APROVAÇÕES DE ENVIO E AGENDA -->
+      <section id="view-approvals" class="view">
+        <div class="view-header">
+          <div>
+            <h1>Envios e Agenda da IA</h1>
+            <p>Revise mensagens e contatos preparados pela IA antes de enviar ou salvar no seu celular.</p>
+          </div>
+        </div>
+
+        <div id="approvalsNotice" class="sync-notice hidden"></div>
+        <div id="contactApprovalsSection"></div>
+        <div id="approvalsList" class="approvals-stack"></div>
+      </section>
+
+      <!-- TELA 3: MEMÓRIA DA IA -->
+      <section id="view-memory" class="view">
+        <div class="view-header">
+          <div>
+            <h1>Memória da IA</h1>
+            <p>Veja exatamente as mensagens salvas neste computador e apague quando quiser.</p>
+          </div>
+        </div>
+
+        <div class="memory-split">
+          <div class="memory-list" id="memorySidebar"></div>
+
+          <div class="memory-pane">
+            <div class="memory-pane-header">
+              <strong id="memoryChatTitle">Selecione uma conversa</strong>
+              <div class="memory-actions" id="memoryActions">
+                <button class="btn-ghost btn-xs" id="btnPullChatHistory" onclick="pullHistory(selectedMemoryJid)">Carregar anteriores</button>
+                <button class="btn-ghost btn-xs" onclick="clearSelectedChatHistory(2)">Apagar últimas 2h</button>
+                <button class="btn-ghost-danger btn-xs" onclick="clearSelectedChatHistory(null)">Limpar tudo</button>
+              </div>
+            </div>
+            <div class="memory-messages" id="memoryMessages"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TELA 4: CONEXÕES COM IAS + PROTEÇÃO + ATIVIDADE -->
+      <section id="view-connections" class="view">
+        <div class="view-header">
+          <div>
+            <h1>Programas de IA</h1>
+            <p>Ative com um clique nos aplicativos de IA que você usa neste computador.</p>
+          </div>
+          <div class="header-actions-inline">
+            <button class="btn-ghost btn-sm" id="btnTestMcp" onclick="runMcpSelfTest()">Testar conexão</button>
+            <button class="btn-primary btn-sm" onclick="installInAllClients()">Conectar em todas</button>
+          </div>
+        </div>
+
+        <div id="mcpDiagNotice" class="sync-notice hidden"></div>
+
+        <div id="aiClientsCleanList" class="clean-list"></div>
+        <div id="otherAiToggleWrap" class="other-ai-toggle-wrap hidden">
+          <button class="btn-ghost btn-xs" id="btnToggleOtherAis" onclick="toggleShowOtherAis()"></button>
+        </div>
+
+        <div class="section-spacer"></div>
+
+        <!-- CARD SUPERGROK / GROK BOT / IAS WEB -->
+        <div class="sub-header">
+          <h2>SuperGrok, Grok Bot &amp; IAs no Navegador</h2>
+        </div>
+
+        <div class="clean-settings-card web-connector-card">
+          <div class="setting-row">
+            <div>
+              <strong>Habilitar link seguro para SuperGrok, Grok Bot e Gemini Web</strong>
+              <span>Gera uma URL HTTPS protegida que só funciona enquanto esta janela estiver aberta</span>
+            </div>
+            <label class="ios-switch">
+              <input type="checkbox" id="chkWebTunnel" onchange="toggleWebTunnel(this.checked)" />
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+
+          <div id="webTunnelBody" class="web-tunnel-body hidden">
+            <div id="webTunnelStatusLine" class="tunnel-status-line"></div>
+
+            <div id="webTunnelUrlBox" class="tunnel-url-box hidden">
+              <input type="text" id="webTunnelUrlInput" readonly onclick="this.select()" />
+              <button class="btn-primary btn-xs" id="btnCopyTunnelUrl" onclick="copyTunnelUrl()">Copiar URL</button>
+            </div>
+
+            <div class="tunnel-quick-actions">
+              <button class="btn-ghost btn-xs" onclick="openExternalUrl('https://grok.com/connectors')">
+                Abrir grok.com/connectors
+              </button>
+              <button class="btn-ghost btn-xs" onclick="rotateWebToken()">
+                Gerar nova chave secreta
+              </button>
+              <button class="btn-ghost btn-xs" onclick="toggleCustomTunnelPanel()">
+                Domínio fixo (opcional)
+              </button>
+            </div>
+
+            <p class="tunnel-hint">
+              No <strong>SuperGrok</strong> ou <strong>Grok Bot</strong>, acesse <em>Connectors → New Connector → Custom</em> e cole a URL acima. Ao fechar o Guardião no <strong>X</strong>, o link desliga na hora.
+            </p>
+
+            <div id="customTunnelPanel" class="custom-tunnel-panel hidden">
+              <div class="custom-tunnel-grid">
+                <div>
+                  <label>URL pública fixa (opcional, ex: Cloudflare Tunnel)</label>
+                  <input type="text" id="inpCustomTunnelUrl" placeholder="https://whatsapp-mcp.suaempresa.com.br" />
+                </div>
+                <div>
+                  <label>Token do Cloudflare Tunnel (opcional)</label>
+                  <input type="password" id="inpCustomTunnelToken" placeholder="eyJhIjoi..." />
+                </div>
+              </div>
+              <div class="custom-tunnel-actions">
+                <button class="btn-primary btn-xs" onclick="saveCustomTunnelConfig()">Salvar túnel fixo</button>
+                <button class="btn-ghost btn-xs" onclick="clearCustomTunnelConfig()">Voltar para link automático gratuito</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-spacer"></div>
+
+        <div class="sub-header">
+          <h2>Proteção anti-spam</h2>
+        </div>
+
+        <div class="clean-settings-card">
+          <div class="setting-row">
+            <div>
+              <strong>Pedir confirmação antes de enviar para contatos individuais</strong>
+              <span>Evita envios indesejados para clientes ou fornecedores</span>
+            </div>
+            <label class="ios-switch">
+              <input type="checkbox" id="chkApproveContacts" onchange="saveAntiBanSettings()" />
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <strong>Pedir confirmação também em grupos</strong>
+              <span>Desligado permite que a IA responda direto nos grupos liberados</span>
+            </div>
+            <label class="ios-switch">
+              <input type="checkbox" id="chkApproveGroups" onchange="saveAntiBanSettings()" />
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <strong>Pedir confirmação antes de salvar ou renomear contatos na agenda</strong>
+              <span>Quando ligado, você revisa os nomes sugeridos pela IA com 1 clique antes de gravar no celular</span>
+            </div>
+            <label class="ios-switch">
+              <input type="checkbox" id="chkApproveContactSaves" onchange="saveAntiBanSettings()" />
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <strong>Simular digitação humana e limite de segurança</strong>
+              <span>Aguarda intervalo natural e bloqueia mensagens idênticas em sequência</span>
+            </div>
+            <label class="ios-switch">
+              <input type="checkbox" id="chkSimulateTyping" onchange="saveAntiBanSettings()" />
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="section-spacer"></div>
+
+        <div class="sub-header sub-header-flex">
+          <h2>Últimos acessos da IA</h2>
+          <button class="btn-ghost btn-xs" onclick="openLogFile()">Abrir log de diagnóstico</button>
+        </div>
+        <div id="cleanAuditList" class="clean-audit"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
