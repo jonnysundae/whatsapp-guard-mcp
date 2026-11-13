@@ -890,6 +890,17 @@ export function searchAuthorizedMessages(query, jid = null, limit = 30) {
 /**
  * Ferramentas de Privacidade para o Funcionário apagar mensagens do banco da IA
  */
+export function getMessageContentById(messageId) {
+  if (!messageId) return null;
+  const row = db.prepare(`
+    SELECT content
+    FROM messages
+    WHERE id = ?
+    LIMIT 1
+  `).get(String(messageId));
+  return row?.content ?? null;
+}
+
 export function deleteMessageFromAI(messageId) {
   db.prepare('DELETE FROM messages WHERE id = ?').run(messageId);
   directoryChatsCache = null;

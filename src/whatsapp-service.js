@@ -17,6 +17,7 @@ import makeWASocket, {
   hmacSign,
   jidNormalizedUser,
   LT_HASH_ANTI_TAMPERING,
+  makeCacheableSignalKeyStore,
   newLTHashState,
   proto,
   toNumber,
@@ -37,6 +38,7 @@ import {
   getContactSaveItemById,
   getDirectoryChats,
   getHistoryCursorForChat,
+  getMessageContentById,
   getNextQueuedOutboxItem,
   getPendingContactSaveItems,
   getRecentOutboxItems,
@@ -108,6 +110,21 @@ class WhatsAppGuardService {
     this.reconnectAttempts = 0;
     this.lastGroupsFetchAt = 0;
     this.lastFullAppStateSyncAt = 0;
+    this.sentMessageCache = new Map(); // id -> proto.Message (para responder receipts de retry)
+    this.groupMetaCache = new Map(); // jid -> { data, fetchedAt }
+    const retryMap = new Map();
+    this.msgRetryCounterCache = {
+      get: (k) => retryMap.get(k),
+      set: (k, v) => {
+        if (retryMap.size >= 2000) {
+          const oldest = retryMap.keys().next().value;
+          if (oldest !== undefined) retryMap.delete(oldest);
+        }
+        retryMap.set(k, v);
+      },
+      del: (k) => retryMap.delete(k),
+      flushAll: () => retryMap.clear()
+    };
 
     // Garante que resquícios de modo demonstração anterior nunca fiquem presos no banco
     try {
@@ -138,6 +155,15 @@ class WhatsAppGuardService {
     } catch {
       this.clearAuthFolder();
     }
+  }
+
+  _rememberSentMessage(id, message) {
+    if (!id || !message) return;
+    if (this.sentMessageCache.size >= 500) {
+      const oldest = this.sentMessageCache.keys().next().value;
+      if (oldest !== undefined) this.sentMessageCache.delete(oldest);
+    }
+    this.sentMessageCache.set(id, message);
   }
 
   _hasAnyAppStateSyncKey() {
@@ -277,14 +303,38 @@ class WhatsAppGuardService {
         version,
         logger,
         printQRInTerminal: false,
-        auth: state,
+        auth: {
+          creds: state.creds,
+          keys: makeCacheableSignalKeyStore(state.keys, logger)
+        },
         browser: browserTuple,
         syncFullHistory: false, // Não pede arquivo completo de anos ao WhatsApp
         shouldSyncHistoryMessage: () => true, // Permite receber cursores iniciais, mapeamentos LID e pacotes ON_DEMAND
         markOnlineOnConnect: false,
         generateHighQualityLinkPreview: false,
         keepAliveIntervalMs: 25000,
-        retryRequestDelayMs: 500
+        retryRequestDelayMs: 500,
+        msgRetryCounterCache: this.msgRetryCounterCache,
+        getMessage: async (key) => {
+          const id = key?.id;
+          if (!id) return undefined;
+          const cached = this.sentMessageCache.get(id);
+          if (cached) {
+            logInfo('whatsapp', 'Reenviando mensagem em retry Signal (cache)', { id, jid: key?.remoteJid });
+            return cached;
+          }
+          const dbText = getMessageContentById(id);
+          if (dbText) {
+            logInfo('whatsapp', 'Reenviando mensagem em retry Signal (SQLite)', { id, jid: key?.remoteJid });
+            return { conversation: dbText };
+          }
+          return undefined;
+        },
+        cachedGroupMetadata: async (jid) => {
+          const hit = this.groupMetaCache.get(jid);
+          if (hit && Date.now() - hit.fetchedAt < 5 * 60_000) return hit.data;
+          return undefined;
+        }
       });
 
       this.sock = currentSock;
@@ -615,6 +665,13 @@ class WhatsAppGuardService {
       currentSock.ev.on('messages.upsert', ({ messages }) => {
         runInTransaction(() => {
           for (const msg of messages) {
+            if (msg?.messageStubType === proto.WebMessageInfo.StubType.CIPHERTEXT) {
+              logWarn('whatsapp', 'Mensagem recebida aguardando descriptografia (CIPHERTEXT)', {
+                jid: msg.key?.remoteJid,
+                id: msg.key?.id,
+                reason: msg.messageStubParameters?.[0] || ''
+              });
+            }
             if (msg?.message?.protocolMessage?.appStateSyncKeyShare) {
               this.scheduleAppStateSync(900, { force: true });
             }
@@ -1174,6 +1231,7 @@ class WhatsAppGuardService {
       const entries = Object.entries(groups || {});
       runInTransaction(() => {
         for (const [jid, meta] of entries) {
+          this.groupMetaCache.set(jid, { data: meta, fetchedAt: Date.now() });
           if (meta?.subject) {
             upsertDirectoryChat(jid, meta.subject, true, { nameSource: 'contact' });
           }
@@ -2584,7 +2642,11 @@ class WhatsAppGuardService {
             // Presença "digitando" nunca deve impedir o envio caso o contato use @lid sem me.lid
             if (settings.simulateTyping) await sleep(Math.min(typingDurationMs, 2500));
           }
-          await this.sock.sendMessage(nextItem.jid, { text: nextItem.content });
+          const sentMsg = await this.sock.sendMessage(nextItem.jid, { text: nextItem.content });
+          if (sentMsg?.key?.id && sentMsg?.message) {
+            this._rememberSentMessage(sentMsg.key.id, sentMsg.message);
+          }
+          var sentMessageId = sentMsg?.key?.id || null;
         } catch (sendErr) {
           updateOutboxItem(nextItem.id, {
             status: 'failed',
@@ -2614,7 +2676,7 @@ class WhatsAppGuardService {
       });
 
       ingestFilteredMessage({
-        id: `out_${nextItem.id}_${this.lastSentTimestamp}`,
+        id: sentMessageId || `out_${nextItem.id}_${this.lastSentTimestamp}`,
         jid: nextItem.jid,
         chatName: nextItem.chat_name,
         senderName: 'Eu (via IA)',
