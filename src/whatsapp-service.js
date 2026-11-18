@@ -70,11 +70,26 @@ const AUTH_DIR = path.join(DATA_DIR, 'wa_auth');
 function createBaileysLogger(bindings = {}) {
   const shouldLogDetail = (msg) =>
     /retry|session|decrypt|bad mac|cipher|prekey|not available|sending message again/i.test(String(msg || ''));
+  const serializeSafe = (val) => {
+    if (val instanceof Error) {
+      return { name: val.name, message: val.message, stack: val.stack?.split('\n').slice(0, 4).join(' | ') };
+    }
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      const out = {};
+      for (const [k, v] of Object.entries(val)) {
+        out[k] = v instanceof Error
+          ? { name: v.name, message: v.message, stack: v.stack?.split('\n').slice(0, 4).join(' | ') }
+          : v;
+      }
+      return out;
+    }
+    return val;
+  };
   const formatMsg = (objOrMsg, msg) => {
-    if (typeof objOrMsg === 'string') return { text: objOrMsg, meta: bindings };
+    if (typeof objOrMsg === 'string') return { text: objOrMsg, meta: serializeSafe(bindings) };
     return {
       text: String(msg || objOrMsg?.msg || ''),
-      meta: { ...bindings, ...(objOrMsg && typeof objOrMsg === 'object' ? objOrMsg : {}) }
+      meta: serializeSafe({ ...bindings, ...(objOrMsg && typeof objOrMsg === 'object' ? objOrMsg : {}) })
     };
   };
   return {
