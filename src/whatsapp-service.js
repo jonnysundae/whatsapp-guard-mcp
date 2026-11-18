@@ -67,7 +67,42 @@ import { logError, logInfo, logWarn } from './logger.js';
 
 const AUTH_DIR = path.join(DATA_DIR, 'wa_auth');
 
-const logger = pino({ level: 'silent' });
+function createBaileysLogger(bindings = {}) {
+  const shouldLogDetail = (msg) =>
+    /retry|session|decrypt|bad mac|cipher|prekey|not available|sending message again/i.test(String(msg || ''));
+  const formatMsg = (objOrMsg, msg) => {
+    if (typeof objOrMsg === 'string') return { text: objOrMsg, meta: bindings };
+    return {
+      text: String(msg || objOrMsg?.msg || ''),
+      meta: { ...bindings, ...(objOrMsg && typeof objOrMsg === 'object' ? objOrMsg : {}) }
+    };
+  };
+  return {
+    level: 'info',
+    child(childBindings = {}) {
+      return createBaileysLogger({ ...bindings, ...childBindings });
+    },
+    trace() {},
+    debug(objOrMsg, msg) {
+      const { text, meta } = formatMsg(objOrMsg, msg);
+      if (shouldLogDetail(text)) logInfo('baileys', text, meta);
+    },
+    info(objOrMsg, msg) {
+      const { text, meta } = formatMsg(objOrMsg, msg);
+      if (shouldLogDetail(text)) logInfo('baileys', text, meta);
+    },
+    warn(objOrMsg, msg) {
+      const { text, meta } = formatMsg(objOrMsg, msg);
+      if (text) logWarn('baileys', text, meta);
+    },
+    error(objOrMsg, msg) {
+      const { text, meta } = formatMsg(objOrMsg, msg);
+      if (text) logError('baileys', text, meta);
+    }
+  };
+}
+
+const logger = createBaileysLogger();
 
 class WhatsAppGuardService {
   constructor() {
